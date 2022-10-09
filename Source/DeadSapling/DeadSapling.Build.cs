@@ -11,5 +11,9 @@ public class DeadSapling : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay", "GameplayTasks"});
 
         PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem" });
+
+		MinFilesUsingPrecompiledHeaderOverride = 1;
+
+		bUseUnity = false;
 	}
 }
