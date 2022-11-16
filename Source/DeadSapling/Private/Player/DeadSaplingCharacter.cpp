@@ -125,7 +125,6 @@ void ADeadSaplingCharacter::MoveRight(float Value)
 void ADeadSaplingCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
 
 	FVector Start;
 	FVector End;
@@ -147,18 +146,21 @@ void ADeadSaplingCharacter::Tick(float DeltaTime)
 
 	if (bIsHit)
 	{
-		lastInteractiveTraced = InteractHit.GetActor();
-		IInteractiveActor::Execute_OnTrace(lastInteractiveTraced);
+		LastInteractiveTraced = &InteractHit;
+		IInteractiveActor::Execute_OnTrace(InteractHit.GetActor(), *LastInteractiveTraced);
 	}
 	else {
-		lastInteractiveTraced = NULL;
+		LastInteractiveTraced = nullptr;
 	}
 }
 
 void ADeadSaplingCharacter::Interact()
 {
-	if (IsValid(lastInteractiveTraced))
+	if (LastInteractiveTraced)
 	{
-		IInteractiveActor::Execute_Interact(lastInteractiveTraced);
+		if (IsValid(LastInteractiveTraced->GetActor()))
+		{
+			IInteractiveActor::Execute_Interact(LastInteractiveTraced->GetActor(), *LastInteractiveTraced);
+		}
 	}
 }

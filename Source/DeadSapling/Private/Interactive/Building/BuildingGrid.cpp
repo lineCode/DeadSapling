@@ -2,16 +2,18 @@
 
 
 #include "BuildingGrid.h"
+
+#include "Building.h"
 #include "Kismet/GameplayStatics.h"
-#include "Settings/DeadSaplingGameInstance.h"
 
 
+class ABuilding;
 // Sets default values
 ABuildingGrid::ABuildingGrid()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
+	
 	GridMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Building Grid"));
 	GridMesh->SetupAttachment(RootComponent);
 	GridMesh->bUseAsyncCooking = true;
@@ -22,41 +24,34 @@ ABuildingGrid::ABuildingGrid()
 	BasicMatInstance = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("Base Material"));
 }
 
-void ABuildingGrid::ToggleBuildMode()
-{
-	IsInBuildMode = !IsInBuildMode;
-	//TODO SETUP MAP THEN SET THIS TO INVISIBLE ON CONSTRUCTION
-	//GridMesh->SetVisibility(IsInBuildMode);
-}
-
 // Called when the game starts or when spawned
 void ABuildingGrid::BeginPlay()
 {
 	Super::BeginPlay();
+	GridMesh->SetVisibility(false);
+	SelectionMesh->SetVisibility(false);
+	
 	Controller = Cast<ADeadSaplingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	Controller->OnBuildMenuToggle.AddDynamic(this, &ABuildingGrid::ToggleBuildMode);
 }
 
-// Called every frame
-void ABuildingGrid::Tick(float DeltaTime)
+
+void ABuildingGrid::ToggleBuildMode()
 {
-	Super::Tick(DeltaTime);
+	GridMesh->SetVisibility(!GridMesh->GetVisibleFlag());
 }
 
 void ABuildingGrid::GenerateGrid()
 {
 	SetupMaterials();
 
+	CreateSelectionMesh();
+	
 	CreateHorizontalLinesGeometry();
 
 	CreateVerticalLinesGeometry();
 
 	CreateGridMesh();
-
-	CreateSelectionMesh();
-
-	SetupTurrets();
-	
 }
 
 
@@ -107,7 +102,7 @@ void ABuildingGrid::CreateLine(const FVector* Start, const FVector* End, const f
 
 void ABuildingGrid::CreateGridMesh()
 {
-	//GridMesh->SetVisibility(false);
+	GridMesh->SetVisibility(true);
 	// Generate Mesh Sections
 	GridMesh->CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(),
 	                            TArray<FProcMeshTangent>(), false);
@@ -126,7 +121,7 @@ void ABuildingGrid::CreateSelectionMesh()
 	const FVector End = FVector(TileSize, TileSize / 2, 0.0);
 	CreateLine(&Start, &End, &TileSize);
 
-	SelectionMesh->SetVisibility(false);
+
 
 	SelectionMesh->CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(),
 	                                 TArray<FProcMeshTangent>(), false);
@@ -179,50 +174,6 @@ float ABuildingGrid::GridHeight() const
 	return NumRows * TileSize;
 }
 
-bool ABuildingGrid::LocationToTile(const FVector* Location, int32* Row, int32* Column) const
-{
-	const double XFactor = (Location->X - this->GetActorLocation().X) / GridWidth();
-	const int32 CalculatedRow = FMath::Floor(XFactor * NumRows);
-
-	const double YFactor = (Location->Y - this->GetActorLocation().Y) / GridHeight();
-	const int32 CalculatedColumn = FMath::Floor(YFactor * NumColumns);
-
-	if (IsValidGridTile(&CalculatedRow, &CalculatedColumn))
-	{
-		*Row = CalculatedRow;
-		*Column = CalculatedColumn;
-		return true;
-	}
-
-	return false;
-}
-
-FVector2D ABuildingGrid::TileToGridLocation(int32* Row, int32* Column) const
-{
-	const double GridLocationX = (*Row * TileSize) + GetActorLocation().X + (TileSize / 2);
-	const double GridLocationY = (*Column * TileSize) + GetActorLocation().Y + (TileSize / 2);
-
-	return FVector2d(GridLocationX, GridLocationY);
-}
-
-void ABuildingGrid::SetSelectedTile(int32* Row, int32* Column) const
-{
-	if (IsValidGridTile(Row, Column))
-	{
-		const FVector2D GridLocation = TileToGridLocation(Row, Column);
-		const FVector Location = FVector(GridLocation.X, GridLocation.Y, GetActorLocation().Z);
-		SelectionMesh->SetWorldLocation(Location);
-		SelectionMesh->SetVisibility(true);
-	}
-}
-
-bool ABuildingGrid::IsValidGridTile(const int32* Row, const int32* Column) const
-{
-	if (*Row >= 0 && *Row < NumRows && *Column >= 0 && *Column < NumColumns)
-		return true;
-	return false;
-}
-
 /**
  * Stupid shit you have to do because you are not allowed to use Create in Constructor
  */
@@ -237,60 +188,3 @@ void ABuildingGrid::SetupMaterials()
 	SelectionMaterial->SetScalarParameterValue("Opacity", SelectionOpactiy);
 }
 
-
-void ABuildingGrid::Interact_Implementation()
-{
-	// Don't do stuff if not in build mode
-	if (IsInBuildMode && !IsBuilt)
-	{
-		if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(
-			Cast<UDeadSaplingGameInstance>(GetGameInstance())->tower_data.GetData()[0]))
-		{
-			Building = GetWorld()->SpawnActor<ATower>(TowerBase, GetActorLocation(), GetActorRotation());
-			Building->Initialize(TowerInfo, GetActorLocation(), GetActorRotation());
-			IsBuilt = true;
-		}
-		else
-		{
-			LOG_ERROR(LogInit, "TowerInfo doesn't exist.");
-		}
-	}
-}
-
-void ABuildingGrid::OnTrace_Implementation()
-{
-	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
-	if (IsBuilt) return;
-	// Don't do stuff if not in build mode
-	if (IsInBuildMode)
-	{
-		GetWorldTimerManager().ClearTimer(TriggerTraceLeave);
-		// TODO: Here activate particle effects / display of tower before building
-		if (!IsTraced)
-		{
-			IsTraced = true;
-
-			if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(
-				Cast<UDeadSaplingGameInstance>(GetGameInstance())->tower_data.GetData()[0]))
-			{
-				Building = GetWorld()->SpawnActor<ATower>(TowerBase, GetActorLocation(), GetActorRotation());
-				Building->Initialize(TowerInfo, GetActorLocation(), GetActorRotation());
-			}
-			else
-			{
-				LOG_ERROR(LogInit, "TowerInfo doesn't exist.");
-			}
-		}
-		//Set a call to on leaveTrace if there was no trace for 0.2s
-		GetWorldTimerManager().SetTimer(TriggerTraceLeave, this, &ABuildingSpot::OnLeaveTrace, 1.0f, false);
-	}
-}
-
-void ABuildingGrid::OnLeaveTrace()
-{
-	if (IsTraced)
-	{
-		IsTraced = false;
-		Building->Destroy();
-	}
-}
