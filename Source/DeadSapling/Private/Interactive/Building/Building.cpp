@@ -19,7 +19,6 @@ ABuilding::ABuilding()
 	RootComponent = BaseMesh;
 	// Hide Until BuildMenu is active
 	BaseMesh->SetVisibility(false);
-
 }
 
 void ABuilding::Initialize(ABuildingGrid* BuildingGrid)
@@ -49,29 +48,36 @@ void ABuilding::ToggleBuildMode()
 {
 	IsInBuildMode = !IsInBuildMode;
 
-	if(!BuiltTower)
+	if (!BuiltTower)
 	{
 		BaseMesh->SetVisibility(IsInBuildMode);
 	}
 }
 
-void ABuilding::Interact_Implementation(FHitResult& HitResult)
+void ABuilding::Interact_Implementation()
 {
 	if (!IsInBuildMode) return;
-	
+
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
-	if (HasBeenBuilt) return;
+	if (BuiltTower) return;
 
 	if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(GameInstance->tower_data.GetData()[0]))
 	{
-		BuiltTower = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation());
-		if (GameInstance->GetPlayerMoney() > TowerInfo->TowerCost)
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.bNoFail = true;
+		Params.Owner = this;
+
+		BuiltTower = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation(),
+		                                            Params);
+		if (GameInstance->GetPlayerMoney() >= TowerInfo->TowerCost)
 		{
 			BuiltTower->Initialize(TowerInfo, TowerInfo->TowerMesh);
 			GameInstance->SubtractMoney(TowerInfo->TowerCost);
-			HasBeenBuilt = true;
 			// This is a very simplistic implementation, revisit this when selling /rebuilding is possible
 			BuildingGridRef->GridWeight += TowerInfo->TowerWeight;
+			GetWorldTimerManager().ClearTimer(TimerTraceLeave);
+			CleanUp();
 		}
 	}
 	else
@@ -81,33 +87,42 @@ void ABuilding::Interact_Implementation(FHitResult& HitResult)
 }
 
 
-void ABuilding::OnTrace_Implementation(FHitResult& HitResult)
+void ABuilding::OnTrace_Implementation()
 {
 	if (!IsInBuildMode) return;
 
-	//Mark the current selection 
+	//Mark the current selection
+
 	SetSelectedVisual();
-	
-	GetWorldTimerManager().ClearTimer(TimerTraceLeave);
-	
+
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
-	if (HasBeenBuilt) return;
-	
+	if (BuiltTower) return;
+
 	// TODO: Here activate particle effects / display of tower before building
 	if (!IsTraced)
 	{
 		IsTraced = true;
-		
-
 		if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(GameInstance->tower_data.GetData()[0]))
 		{
-			if (GameInstance->GetPlayerMoney() > TowerInfo->TowerCost)
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			Params.bNoFail = true;
+			Params.Owner = this;
+
+			BaseMesh->SetVisibility(false);
+
+			this->TowerPreview = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(),
+			                                                    GetActorRotation(), Params);
+			if (TowerPreview)
 			{
-				BaseMesh->SetStaticMesh(TowerInfo->PreviewMesh);
-			}
-			else
-			{
-				BaseMesh->SetStaticMesh(TowerInfo->NoMoneyMesh);
+				if (GameInstance->GetPlayerMoney() > TowerInfo->TowerCost)
+				{
+					this->TowerPreview->Initialize(TowerInfo, TowerInfo->PreviewMesh);
+				}
+				else
+				{
+					this->TowerPreview->Initialize(TowerInfo, TowerInfo->NoMoneyMesh);
+				}
 			}
 		}
 		else
@@ -115,7 +130,7 @@ void ABuilding::OnTrace_Implementation(FHitResult& HitResult)
 			LOG_ERROR(LogInit, "TowerInfo doesn't exist!");
 		}
 		//Set a call to on leaveTrace if there was no trace for 0.2s
-		GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, .25f, false);
+		GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, 0.25f, false);
 	}
 }
 
@@ -124,16 +139,26 @@ void ABuilding::OnLeaveTrace()
 	if (IsTraced)
 	{
 		IsTraced = false;
-		BaseMesh->SetStaticMesh(DefaultMesh);
-		BuildingGridRef->SelectionMesh->SetVisibility(false);
+		CleanUp();
 	}
 }
 
-void ABuilding::SetSelectedVisual() const
+void ABuilding::CleanUp()
+{
+	BaseMesh->SetVisibility(!BuiltTower && IsInBuildMode);
+	
+	if (TowerPreview)
+	{
+		TowerPreview->Destroy();
+	}
+	BuildingGridRef->SelectionMesh->SetVisibility(false);
+}
+
+void ABuilding::SetSelectedVisual()
 {
 	UProceduralMeshComponent* pmc = BuildingGridRef->SelectionMesh;
-
-	FVector location = FVector(GetActorLocation().X - (BuildingGridRef->HalfTileSize), GetActorLocation().Y - (BuildingGridRef->HalfTileSize), GetActorLocation().Y);
-	pmc->SetWorldLocation(location);
+	FVector Location = FVector(GetActorLocation().X - (BuildingGridRef->HalfTileSize),
+	                           GetActorLocation().Y - (BuildingGridRef->HalfTileSize), 111);
+	pmc->SetWorldLocation(Location);
 	pmc->SetVisibility(true);
 }

@@ -147,8 +147,8 @@ void ADeadSaplingCharacter::Tick(float DeltaTime)
 
 	if (bIsHit)
 	{
-		LastInteractiveTraced = &InteractHit;
-		IInteractiveActor::Execute_OnTrace(InteractHit.GetActor(), *LastInteractiveTraced);
+		LastInteractiveTraced = InteractHit.GetActor();
+		IInteractiveActor::Execute_OnTrace(LastInteractiveTraced);
 	}
 	else
 	{
@@ -160,9 +160,6 @@ void ADeadSaplingCharacter::Interact()
 {
 	if (LastInteractiveTraced)
 	{
-		if (IsValid(LastInteractiveTraced->GetActor()))
-		{
-			IInteractiveActor::Execute_Interact(LastInteractiveTraced->GetActor(), *LastInteractiveTraced);
-		}
+		IInteractiveActor::Execute_Interact(LastInteractiveTraced);
 	}
 }

@@ -8,6 +8,7 @@
 #include "Interactive/InteractiveActor.h"
 #include "Player/DeadSaplingPlayerController.h"
 #include "Settings/DeadSaplingGameInstance.h"
+#include "../LogMacros.h"
 #include "Building.generated.h"
 
 class ABuildingGrid;
@@ -25,9 +26,8 @@ public:
 private:
 	// If Something is traced
 	bool IsTraced = false;
-	// If this building has been built already.
-	bool HasBeenBuilt = false;
-	
+
+	UPROPERTY()
 	FTimerHandle TimerTraceLeave;
 
 	UPROPERTY()
@@ -35,7 +35,6 @@ private:
 
 	UPROPERTY()
 	bool IsInBuildMode = false;
-	
 	
 	UPROPERTY()
 	ATower* TowerPreview;
@@ -57,14 +56,14 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Building")
 	UStaticMeshComponent* BaseMesh;
+	
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact", meta = (AllowPrivateAccess = true))
+	void Interact(); //prototype
+	virtual void Interact_Implementation() override; //actual impl.
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact", meta = (AllowPrivateAccess = true))
-	void Interact(FHitResult& HitResult); //prototype
-	virtual void Interact_Implementation(FHitResult& HitResult) override; //actual impl.
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact", meta = (AllowPrivateAccess = true))
-	void OnTrace(FHitResult& HitResult); //prototype
-	virtual void OnTrace_Implementation(FHitResult& HitResult) override; //actual impl.
+	void OnTrace(); //prototype
+	virtual void OnTrace_Implementation() override; //actual impl.
 
 public:
 	// Called every frame
@@ -73,7 +72,10 @@ public:
 	void ToggleBuildMode();
 
 private:
-	
+
+	UFUNCTION()
 	void OnLeaveTrace();
-	void SetSelectedVisual() const;
+	void CleanUp();
+	UFUNCTION()
+	void SetSelectedVisual();
 };

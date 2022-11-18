@@ -55,7 +55,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Trace)
 	float LineTraceDistance;
 
-	FHitResult* LastInteractiveTraced;
+	AActor* LastInteractiveTraced;
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
