@@ -17,8 +17,8 @@ ABuildingGrid::ABuildingGrid()
 	GridMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Building Grid"));
 	GridMesh->SetupAttachment(RootComponent);
 	GridMesh->bUseAsyncCooking = true;
+
 	SelectionMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Selection Grid"));
-	SelectionMesh->SetupAttachment(RootComponent);
 	SelectionMesh->bUseAsyncCooking = true;
 
 	BasicMatInstance = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("Base Material"));
@@ -29,7 +29,6 @@ void ABuildingGrid::BeginPlay()
 {
 	Super::BeginPlay();
 	GridMesh->SetVisibility(false);
-	SelectionMesh->SetVisibility(false);
 	
 	Controller = Cast<ADeadSaplingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	Controller->OnBuildMenuToggle.AddDynamic(this, &ABuildingGrid::ToggleBuildMode);
@@ -39,6 +38,27 @@ void ABuildingGrid::BeginPlay()
 void ABuildingGrid::ToggleBuildMode()
 {
 	GridMesh->SetVisibility(!GridMesh->GetVisibleFlag());
+}
+
+TArray<FVector> ABuildingGrid::GetSpots()
+{
+	TArray<FVector> Result;
+	for(int R = 0; R < NumRows; R++)
+	{
+		for(int C = 0; C<NumColumns; C++)
+		{
+			Result.Add(TileToGridLocation(R, C));
+		}
+	}
+	return Result;
+}
+
+FVector ABuildingGrid::TileToGridLocation(int Row, int Column)
+{
+	const double GridLocationX = (Row * TileSize) + GetActorLocation().X + (TileSize / 2);
+	const double GridLocationY = (Column * TileSize) + GetActorLocation().Y + (TileSize / 2);
+
+	return FVector(GridLocationX, GridLocationY, GetActorLocation().Z);
 }
 
 void ABuildingGrid::GenerateGrid()
@@ -116,17 +136,17 @@ void ABuildingGrid::CreateGridMesh()
 
 void ABuildingGrid::CreateSelectionMesh()
 {
+	HalfTileSize = TileSize / 2;
 	// Create selection-tile
-	const FVector Start = FVector(0.0, TileSize / 2, 0.0);
-	const FVector End = FVector(TileSize, TileSize / 2, 0.0);
+	const FVector Start = FVector(0.0, HalfTileSize, 0.0);
+	const FVector End = FVector(TileSize, HalfTileSize, 0.0);
 	CreateLine(&Start, &End, &TileSize);
-
-
-
+	
 	SelectionMesh->CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(),
 	                                 TArray<FProcMeshTangent>(), false);
 	// Set Line Material
 	SelectionMesh->SetMaterial(0, SelectionMaterial);
+	SelectionMesh->SetVisibility(false);
 
 	// empty vertices & triangles
 	Vertices.Empty();

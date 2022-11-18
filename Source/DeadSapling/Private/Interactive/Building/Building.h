@@ -52,6 +52,11 @@ private:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DefaultMesh", meta=(AllowedClasses="StaticMesh"))
+	UStaticMesh* DefaultMesh;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Building")
+	UStaticMeshComponent* BaseMesh;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interact", meta = (AllowPrivateAccess = true))
 	void Interact(FHitResult& HitResult); //prototype

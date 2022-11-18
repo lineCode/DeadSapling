@@ -14,6 +14,12 @@ ABuilding::ABuilding()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
+	RootComponent = BaseMesh;
+	// Hide Until BuildMenu is active
+	BaseMesh->SetVisibility(false);
+
 }
 
 void ABuilding::Initialize(ABuildingGrid* BuildingGrid)
@@ -42,7 +48,11 @@ void ABuilding::Tick(float DeltaTime)
 void ABuilding::ToggleBuildMode()
 {
 	IsInBuildMode = !IsInBuildMode;
-	BuiltTower->TowerMesh->SetVisibility(IsInBuildMode);
+
+	if(!BuiltTower)
+	{
+		BaseMesh->SetVisibility(IsInBuildMode);
+	}
 }
 
 void ABuilding::Interact_Implementation(FHitResult& HitResult)
@@ -73,14 +83,12 @@ void ABuilding::Interact_Implementation(FHitResult& HitResult)
 
 void ABuilding::OnTrace_Implementation(FHitResult& HitResult)
 {
+	if (!IsInBuildMode) return;
 
 	//Mark the current selection 
 	SetSelectedVisual();
 	
 	GetWorldTimerManager().ClearTimer(TimerTraceLeave);
-	
-	// Don't do stuff if not in build mode
-	if (!IsInBuildMode) return;
 	
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
 	if (HasBeenBuilt) return;
@@ -89,26 +97,25 @@ void ABuilding::OnTrace_Implementation(FHitResult& HitResult)
 	if (!IsTraced)
 	{
 		IsTraced = true;
+		
 
 		if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(GameInstance->tower_data.GetData()[0]))
 		{
-			TowerPreview = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation());
 			if (GameInstance->GetPlayerMoney() > TowerInfo->TowerCost)
 			{
-				TowerPreview->Initialize(TowerInfo, TowerInfo->PreviewMesh);
+				BaseMesh->SetStaticMesh(TowerInfo->PreviewMesh);
 			}
 			else
 			{
-				TowerPreview->Initialize(TowerInfo, TowerInfo->NoMoneyMesh);
+				BaseMesh->SetStaticMesh(TowerInfo->NoMoneyMesh);
 			}
 		}
 		else
 		{
 			LOG_ERROR(LogInit, "TowerInfo doesn't exist!");
 		}
-
 		//Set a call to on leaveTrace if there was no trace for 0.2s
-		GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, .2f, false);
+		GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, .25f, false);
 	}
 }
 
@@ -117,7 +124,7 @@ void ABuilding::OnLeaveTrace()
 	if (IsTraced)
 	{
 		IsTraced = false;
-		TowerPreview->Destroy();
+		BaseMesh->SetStaticMesh(DefaultMesh);
 		BuildingGridRef->SelectionMesh->SetVisibility(false);
 	}
 }
@@ -125,6 +132,8 @@ void ABuilding::OnLeaveTrace()
 void ABuilding::SetSelectedVisual() const
 {
 	UProceduralMeshComponent* pmc = BuildingGridRef->SelectionMesh;
-	pmc->SetWorldLocation(GetActorLocation());
+
+	FVector location = FVector(GetActorLocation().X - (BuildingGridRef->HalfTileSize), GetActorLocation().Y - (BuildingGridRef->HalfTileSize), GetActorLocation().Y);
+	pmc->SetWorldLocation(location);
 	pmc->SetVisibility(true);
 }

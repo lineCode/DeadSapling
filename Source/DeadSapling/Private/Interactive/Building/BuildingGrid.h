@@ -17,6 +17,8 @@ class DEADSAPLING_API ABuildingGrid : public AActor
 public:
 	// Sets default values for this actor's properties
 	ABuildingGrid();
+	UFUNCTION()
+	TArray<FVector> GetSpots();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,6 +27,9 @@ protected:
 	UFUNCTION()
 	void ToggleBuildMode();
 
+	UFUNCTION()
+	FVector TileToGridLocation(int Row, int Column);
+
 private:
 	UPROPERTY()
 	ADeadSaplingPlayerController* Controller;
@@ -32,10 +37,6 @@ private:
 	// Stuff below is all for the Grid Generator.
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent* GridMesh;
-
-
-	
-	
 	
 	UPROPERTY(EditAnywhere)
 	UMaterial* LineMat;
@@ -75,6 +76,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	float TileSize = 100;
 
+	UPROPERTY(BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
+	float HalfTileSize = 100;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	float LineThickness = 10;
 
