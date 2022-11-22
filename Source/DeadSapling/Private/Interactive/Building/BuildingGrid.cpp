@@ -4,6 +4,7 @@
 #include "BuildingGrid.h"
 
 #include "Building.h"
+#include "SAdvancedRotationInputBox.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -54,8 +55,8 @@ TArray<FVector> ABuildingGrid::GetSpots()
 }
 
 FVector ABuildingGrid::TileToGridLocation(int Row, int Column)
-{
-	const double GridLocationX = (Row * TileSize) + GetActorLocation().X + (TileSize / 2);
+{	
+	const double GridLocationX =   (Row * TileSize) + GetActorLocation().X + (TileSize / 2);
 	const double GridLocationY = (Column * TileSize) + GetActorLocation().Y + (TileSize / 2);
 
 	return FVector(GridLocationX, GridLocationY, GetActorLocation().Z);

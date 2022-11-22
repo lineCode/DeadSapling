@@ -3,9 +3,6 @@
 
 #include "BuildingSpawner.h"
 
-#include "Interactive/Tower.h"
-
-
 // Sets default values
 ABuildingSpawner::ABuildingSpawner()
 {
@@ -25,7 +22,10 @@ void ABuildingSpawner::SpawnBuildings()
 				TArray<FVector> Location = BuildingGrid->GetSpots();
 				for (FVector Spots : Location)
 				{
-					ABuilding* SpawnActor = GetWorld()->SpawnActor<ABuilding>(BuildingBase, Spots, GetActorRotation());
+					//FTransform Transform = FTransform();
+					//ABuilding* SpawnActor = GetWorld()->SpawnActorDeferred<ABuilding>(BuildingBase, Transform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn); IF we want to make shit rotatable..
+					// if(Spawnactor) { SpawnActor->FinishSpawning(Transform) }; Get Transform from DeadSaplingGameState via Rotator
+					ABuilding* SpawnActor = GetWorld()->SpawnActor<ABuilding>(BuildingBase, Spots, BuildingGrid->GetActorRotation());
 					SpawnActor->Initialize(BuildingGrid);
 				}
 			}
@@ -37,5 +37,5 @@ void ABuildingSpawner::SpawnBuildings()
 void ABuildingSpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnBuildings();
+	GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuildingSpawner::SpawnBuildings, 0.5f, false);
 }
