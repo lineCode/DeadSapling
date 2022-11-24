@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"CoreUObject",
-				"AIModule"
+				"AIModule",
+				"ProceduralMeshComponent"
 			]
 		}
 	],
@@ -32,6 +33,10 @@
 				"Mac",
 				"Linux"
 			]
+		},
+		{
+			"Name": "ProceduralMeshComponent",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [
