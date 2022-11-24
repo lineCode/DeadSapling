@@ -63,15 +63,15 @@ void ABuilding::Interact_Implementation()
 
 	if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(GameInstance->tower_data.GetData()[0]))
 	{
-		FActorSpawnParameters Params;
-		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		Params.bNoFail = true;
-		Params.Owner = this;
-
-		BuiltTower = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation(),
-		                                            Params);
 		if (GameInstance->GetPlayerMoney() >= TowerInfo->TowerCost)
 		{
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			Params.bNoFail = true;
+			Params.Owner = this;
+			BuiltTower = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation(),
+			                                            Params);
+
 			BuiltTower->Initialize(TowerInfo, TowerInfo->TowerMesh);
 			GameInstance->SubtractMoney(TowerInfo->TowerCost);
 			// This is a very simplistic implementation, revisit this when selling /rebuilding is possible
@@ -146,7 +146,7 @@ void ABuilding::OnLeaveTrace()
 void ABuilding::CleanUp()
 {
 	BaseMesh->SetVisibility(!BuiltTower && IsInBuildMode);
-	
+
 	if (TowerPreview)
 	{
 		TowerPreview->Destroy();
@@ -158,7 +158,7 @@ void ABuilding::SetSelectedVisual()
 {
 	UProceduralMeshComponent* pmc = BuildingGridRef->SelectionMesh;
 	FVector Location = FVector(GetActorLocation().X - (BuildingGridRef->HalfTileSize),
-	                           GetActorLocation().Y - (BuildingGridRef->HalfTileSize), 111);
+	                           GetActorLocation().Y - (BuildingGridRef->HalfTileSize), GetActorLocation().Z);
 	pmc->SetWorldLocation(Location);
 	pmc->SetVisibility(true);
 }
