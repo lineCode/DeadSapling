@@ -4,7 +4,6 @@
 #include "BuildingGrid.h"
 
 #include "Building.h"
-#include "SAdvancedRotationInputBox.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -17,12 +16,21 @@ ABuildingGrid::ABuildingGrid()
 	
 	GridMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Building Grid"));
 	GridMesh->SetupAttachment(RootComponent);
-	GridMesh->bUseAsyncCooking = true;
 
 	SelectionMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Selection Grid"));
-	SelectionMesh->bUseAsyncCooking = true;
 
 	BasicMatInstance = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("Base Material"));
+
+	if (BasicMatInstance)
+	{
+		LineMaterial = UMaterialInstanceDynamic::Create(BasicMatInstance, nullptr, FName(TEXT("LineMaterial")));
+		LineMaterial->SetVectorParameterValue("Color", LineColor);
+		LineMaterial->SetScalarParameterValue("Opacity", LineOpacity);
+#
+		SelectionMaterial = UMaterialInstanceDynamic::Create(BasicMatInstance, nullptr, FName(TEXT("SelectionMaterial")));
+		SelectionMaterial->SetVectorParameterValue("Color", SelectionColor);
+		SelectionMaterial->SetScalarParameterValue("Opacity", SelectionOpactiy);
+	}
 }
 
 // Called when the game starts or when spawned
@@ -64,7 +72,7 @@ FVector ABuildingGrid::TileToGridLocation(int Row, int Column)
 
 void ABuildingGrid::GenerateGrid()
 {
-	SetupMaterials();
+
 
 	CreateSelectionMesh();
 	
@@ -200,12 +208,5 @@ float ABuildingGrid::GridHeight() const
  */
 void ABuildingGrid::SetupMaterials()
 {
-	LineMaterial = BasicMatInstance->Create(LineMat, this);
-	LineMaterial->SetVectorParameterValue("Color", LineColor);
-	LineMaterial->SetScalarParameterValue("Opacity", LineOpacity);
 
-	SelectionMaterial = BasicMatInstance->Create(SelectionMat, this);
-	SelectionMaterial->SetVectorParameterValue("Color", SelectionColor);
-	SelectionMaterial->SetScalarParameterValue("Opacity", SelectionOpactiy);
 }
-
