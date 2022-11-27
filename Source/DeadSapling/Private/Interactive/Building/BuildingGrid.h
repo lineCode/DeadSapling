@@ -23,7 +23,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	UFUNCTION()
 	void ToggleBuildMode();
 
@@ -33,17 +33,17 @@ protected:
 private:
 	UPROPERTY()
 	ADeadSaplingPlayerController* Controller;
-	
+
 	// Stuff below is all for the Grid Generator.
 	UPROPERTY(VisibleAnywhere)
 	UProceduralMeshComponent* GridMesh;
-	
-	UPROPERTY(EditAnywhere)
+
+	UPROPERTY(EditDefaultsOnly, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	UMaterial* LineMat;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	UMaterial* SelectionMat;
-
+	
 	UPROPERTY()
 	UMaterialInstanceDynamic* LineMaterial;
 
@@ -51,19 +51,16 @@ private:
 	UMaterialInstanceDynamic* SelectionMaterial;
 
 	UPROPERTY()
-	UMaterialInstanceDynamic* BasicMatInstance;
-
-	UPROPERTY()
 	TArray<FVector> Vertices;
 
 	UPROPERTY()
 	TArray<int32> Triangles;
-	
+
 public:
 	// Reference to this will be given to the Buildings so they can highlight themselves.
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = "BuildingGrid")
 	UProceduralMeshComponent* SelectionMesh;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	FString GridName;
 
@@ -78,7 +75,7 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	float HalfTileSize = 100;
-	
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BuildingGrid", meta = (AllowPrivateAccess = true))
 	float LineThickness = 10;
 
@@ -97,7 +94,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category ="BuildingGrid", meta = (AllowPrivateAccess = true))
 	int GridWeight;
 
-private:	
+private:
 	UFUNCTION(BlueprintCallable, Category="BuildingGrid")
 	void GenerateGrid();
 
@@ -110,6 +107,6 @@ private:
 	float GridWidth() const;
 
 	float GridHeight() const;
-	
+
 	void SetupMaterials();
 };

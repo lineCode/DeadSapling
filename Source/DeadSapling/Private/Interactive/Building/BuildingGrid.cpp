@@ -13,24 +13,11 @@ ABuildingGrid::ABuildingGrid()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	
+
 	GridMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Building Grid"));
 	GridMesh->SetupAttachment(RootComponent);
 
 	SelectionMesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Selection Grid"));
-
-	BasicMatInstance = CreateDefaultSubobject<UMaterialInstanceDynamic>(TEXT("Base Material"));
-
-	if (BasicMatInstance)
-	{
-		LineMaterial = UMaterialInstanceDynamic::Create(BasicMatInstance, nullptr, FName(TEXT("LineMaterial")));
-		LineMaterial->SetVectorParameterValue("Color", LineColor);
-		LineMaterial->SetScalarParameterValue("Opacity", LineOpacity);
-#
-		SelectionMaterial = UMaterialInstanceDynamic::Create(BasicMatInstance, nullptr, FName(TEXT("SelectionMaterial")));
-		SelectionMaterial->SetVectorParameterValue("Color", SelectionColor);
-		SelectionMaterial->SetScalarParameterValue("Opacity", SelectionOpactiy);
-	}
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +25,7 @@ void ABuildingGrid::BeginPlay()
 {
 	Super::BeginPlay();
 	GridMesh->SetVisibility(false);
-	
+
 	Controller = Cast<ADeadSaplingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	Controller->OnBuildMenuToggle.AddDynamic(this, &ABuildingGrid::ToggleBuildMode);
 }
@@ -52,9 +39,9 @@ void ABuildingGrid::ToggleBuildMode()
 TArray<FVector> ABuildingGrid::GetSpots()
 {
 	TArray<FVector> Result;
-	for(int R = 0; R < NumRows; R++)
+	for (int R = 0; R < NumRows; R++)
 	{
-		for(int C = 0; C<NumColumns; C++)
+		for (int C = 0; C < NumColumns; C++)
 		{
 			Result.Add(TileToGridLocation(R, C));
 		}
@@ -63,8 +50,8 @@ TArray<FVector> ABuildingGrid::GetSpots()
 }
 
 FVector ABuildingGrid::TileToGridLocation(int Row, int Column)
-{	
-	const double GridLocationX =   (Row * TileSize) + GetActorLocation().X + (TileSize / 2);
+{
+	const double GridLocationX = (Row * TileSize) + GetActorLocation().X + (TileSize / 2);
 	const double GridLocationY = (Column * TileSize) + GetActorLocation().Y + (TileSize / 2);
 
 	return FVector(GridLocationX, GridLocationY, GetActorLocation().Z);
@@ -72,10 +59,10 @@ FVector ABuildingGrid::TileToGridLocation(int Row, int Column)
 
 void ABuildingGrid::GenerateGrid()
 {
-
+	SetupMaterials();
 
 	CreateSelectionMesh();
-	
+
 	CreateHorizontalLinesGeometry();
 
 	CreateVerticalLinesGeometry();
@@ -150,7 +137,7 @@ void ABuildingGrid::CreateSelectionMesh()
 	const FVector Start = FVector(0.0, HalfTileSize, 0.0);
 	const FVector End = FVector(TileSize, HalfTileSize, 0.0);
 	CreateLine(&Start, &End, &TileSize);
-	
+
 	SelectionMesh->CreateMeshSection(0, Vertices, Triangles, TArray<FVector>(), TArray<FVector2D>(), TArray<FColor>(),
 	                                 TArray<FProcMeshTangent>(), false);
 	// Set Line Material
@@ -208,5 +195,11 @@ float ABuildingGrid::GridHeight() const
  */
 void ABuildingGrid::SetupMaterials()
 {
+	LineMaterial = UMaterialInstanceDynamic::Create(LineMat, nullptr, FName(TEXT("LineMaterial")));
+	LineMaterial->SetVectorParameterValue("Color", LineColor);
+	LineMaterial->SetScalarParameterValue("Opacity", LineOpacity);
 
+	SelectionMaterial = UMaterialInstanceDynamic::Create(SelectionMat, nullptr, FName(TEXT("SelectionMaterial")));
+	SelectionMaterial->SetVectorParameterValue("Color", SelectionColor);
+	SelectionMaterial->SetScalarParameterValue("Opacity", SelectionOpactiy);
 }
