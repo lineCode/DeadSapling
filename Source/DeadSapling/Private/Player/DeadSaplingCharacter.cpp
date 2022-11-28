@@ -8,7 +8,6 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 
-#include "DrawDebugHelpers.h"
 
 #define TRACE_INTERACTIVE		ECC_GameTraceChannel2
 
@@ -60,7 +59,7 @@ ADeadSaplingCharacter::ADeadSaplingCharacter()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void ADeadSaplingCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+void ADeadSaplingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up gameplay key bindings
 	check(PlayerInputComponent);
