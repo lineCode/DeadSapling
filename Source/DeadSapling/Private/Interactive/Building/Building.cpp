@@ -63,7 +63,7 @@ void ABuilding::Interact_Implementation()
 
 	if (UDA_TowerInfo* TowerInfo = Cast<UDA_TowerInfo>(GameInstance->tower_data.GetData()[0]))
 	{
-		if (GameInstance->GetPlayerMoney() >= TowerInfo->TowerCost)
+		if (GameInstance->GetMoney() >= TowerInfo->TowerCost)
 		{
 			FActorSpawnParameters Params;
 			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -115,7 +115,7 @@ void ABuilding::OnTrace_Implementation()
 			                                                    GetActorRotation(), Params);
 			if (TowerPreview)
 			{
-				if (GameInstance->GetPlayerMoney() > TowerInfo->TowerCost)
+				if (GameInstance->GetMoney() >= TowerInfo->TowerCost)
 				{
 					this->TowerPreview->Initialize(TowerInfo, TowerInfo->PreviewMesh);
 				}
