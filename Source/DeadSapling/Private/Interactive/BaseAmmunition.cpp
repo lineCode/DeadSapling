@@ -12,30 +12,27 @@ ABaseAmmunition::ABaseAmmunition()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	if(!RootComponent)
-	{
-		RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
-	}
-
 	if(!CollisionComponent)
 	{
 		// Use a sphere as a simple collision representation.
 		CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 		// Set the sphere's collision radius.
 		CollisionComponent->InitSphereRadius(15.0f);
+		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &ABaseAmmunition::OnOverlapBegin);
 		// Set the root component to be the collision component.
 		RootComponent = CollisionComponent;
+		
 	}
 
-	
+
 	
 	if(!ProjectileMovementComponent)
 	{
 		// Use this component to drive this projectile's movement.
 		ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-		ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
-		ProjectileMovementComponent->InitialSpeed = 500.0f;
-		ProjectileMovementComponent->MaxSpeed = 500.0f;
+		ProjectileMovementComponent->SetUpdatedComponent(RootComponent);
+		ProjectileMovementComponent->InitialSpeed = 600.0f;
+		ProjectileMovementComponent->MaxSpeed = 600.0f;
 		ProjectileMovementComponent->bRotationFollowsVelocity = true;
 		ProjectileMovementComponent->bShouldBounce = true;
 		ProjectileMovementComponent->Bounciness = 0.3f;
@@ -62,7 +59,7 @@ void ABaseAmmunition::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 {
 	if (OtherActor && (OtherActor != this) && OtherComp) 
 	{
-		if (OtherActor->GetClass()->IsChildOf(AAI_Character_Base::StaticClass()) && IsEvil)
+		if (OtherActor->GetClass()->IsChildOf(AAI_Character_Base::StaticClass()))
 		{
 			UGameplayStatics::ApplyDamage(OtherActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 

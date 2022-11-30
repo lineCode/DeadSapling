@@ -50,7 +50,7 @@ void ABuilding::ToggleBuildMode()
 
 	if (!BuiltTower)
 	{
-		BaseMesh->SetVisibility(IsInBuildMode);
+		CleanUp();
 	}
 }
 
@@ -72,7 +72,7 @@ void ABuilding::Interact_Implementation()
 			BuiltTower = GetWorld()->SpawnActor<ATower>(TowerInfo->TowerBase, GetActorLocation(), GetActorRotation(),
 			                                            Params);
 
-			BuiltTower->Initialize(TowerInfo, TowerInfo->TowerMesh);
+			BuiltTower->Initialize(TowerInfo, TowerInfo->TowerMesh, true);
 			GameInstance->SubtractMoney(TowerInfo->TowerCost);
 			// This is a very simplistic implementation, revisit this when selling /rebuilding is possible
 			BuildingGridRef->GridWeight += TowerInfo->TowerWeight;
@@ -117,11 +117,11 @@ void ABuilding::OnTrace_Implementation()
 			{
 				if (GameInstance->GetMoney() >= TowerInfo->TowerCost)
 				{
-					this->TowerPreview->Initialize(TowerInfo, TowerInfo->PreviewMesh);
+					this->TowerPreview->Initialize(TowerInfo, TowerInfo->PreviewMesh, false);
 				}
 				else
 				{
-					this->TowerPreview->Initialize(TowerInfo, TowerInfo->NoMoneyMesh);
+					this->TowerPreview->Initialize(TowerInfo, TowerInfo->NoMoneyMesh, false);
 				}
 			}
 		}

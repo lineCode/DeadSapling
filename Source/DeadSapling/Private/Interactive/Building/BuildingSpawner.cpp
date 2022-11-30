@@ -22,9 +22,7 @@ void ABuildingSpawner::SpawnBuildings()
 				TArray<FVector> Location = BuildingGrid->GetSpots();
 				for (FVector Spots : Location)
 				{
-					//FTransform Transform = FTransform();
-					//ABuilding* SpawnActor = GetWorld()->SpawnActorDeferred<ABuilding>(BuildingBase, Transform, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn); IF we want to make shit rotatable..
-					// if(Spawnactor) { SpawnActor->FinishSpawning(Transform) }; Get Transform from DeadSaplingGameState via Rotator
+
 					ABuilding* SpawnActor = GetWorld()->SpawnActor<ABuilding>(BuildingBase, Spots, BuildingGrid->GetActorRotation());
 					SpawnActor->Initialize(BuildingGrid);
 				}
