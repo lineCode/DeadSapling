@@ -7,6 +7,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include <Kismet/GameplayStatics.h>
 
 
 #define TRACE_INTERACTIVE		ECC_GameTraceChannel2
@@ -78,6 +79,9 @@ void ADeadSaplingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	PlayerInputComponent->BindAxis("TurnRate", this, &ADeadSaplingCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ADeadSaplingCharacter::LookUpAtRate);
+
+	PlayerController = Cast<ADeadSaplingPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	PlayerController->OnBuildMenuToggle.AddDynamic(this, &ADeadSaplingCharacter::OnBuildModeChanged);
 }
 
 void ADeadSaplingCharacter::TurnAtRate(float Rate)
