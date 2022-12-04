@@ -97,8 +97,7 @@ void ABuilding::OnTrace_Implementation()
 
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
 	if (BuiltTower) return;
-
-	// TODO: Here activate particle effects / display of tower before building
+	
 	if (!IsTraced)
 	{
 		IsTraced = true;
@@ -129,9 +128,9 @@ void ABuilding::OnTrace_Implementation()
 		{
 			LOG_ERROR(LogInit, "TowerInfo doesn't exist!");
 		}
-		//Set a call to on leaveTrace if there was no trace for 0.2s
-		GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, 0.25f, false);
 	}
+	//Set a call to on leaveTrace if there was no trace for 0.2s
+    GetWorldTimerManager().SetTimer(TimerTraceLeave, this, &ABuilding::OnLeaveTrace, 0.25f, false);
 }
 
 void ABuilding::OnLeaveTrace()
