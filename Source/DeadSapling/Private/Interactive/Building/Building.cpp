@@ -56,7 +56,11 @@ void ABuilding::ToggleBuildMode()
 
 void ABuilding::Interact_Implementation()
 {
-	if (!IsInBuildMode) return;
+	if (!IsInBuildMode || BuiltTower)
+	{
+		CleanUp();
+		return;
+	}
 
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
 	if (BuiltTower) return;
@@ -89,14 +93,18 @@ void ABuilding::Interact_Implementation()
 
 void ABuilding::OnTrace_Implementation()
 {
-	if (!IsInBuildMode) return;
-
+	if (!IsInBuildMode || BuiltTower) 
+	{
+		CleanUp();
+		return;
+	}
+	
 	//Mark the current selection
 
 	SetSelectedVisual();
 
 	// TODO: Right now we can only buy somewhere once. this should be fixed at some point
-	if (BuiltTower) return;
+
 	
 	if (!IsTraced)
 	{
