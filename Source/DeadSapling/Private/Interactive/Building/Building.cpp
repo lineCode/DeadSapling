@@ -17,6 +17,7 @@ ABuilding::ABuilding()
 
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BaseMesh"));
 	RootComponent = BaseMesh;
+	
 	// Hide Until BuildMenu is active
 	BaseMesh->SetVisibility(false);
 }
@@ -84,10 +85,6 @@ void ABuilding::Interact_Implementation()
 			CleanUp();
 		}
 	}
-	else
-	{
-		LOG_ERROR(LogInit, "TowerInfo doesn't exist!");
-	}
 }
 
 
@@ -131,10 +128,6 @@ void ABuilding::OnTrace_Implementation()
 					this->TowerPreview->Initialize(TowerInfo, TowerInfo->NoMoneyMesh, false);
 				}
 			}
-		}
-		else
-		{
-			LOG_ERROR(LogInit, "TowerInfo doesn't exist!");
 		}
 	}
 	//Set a call to on leaveTrace if there was no trace for 0.2s
