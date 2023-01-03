@@ -8,9 +8,9 @@ public class DeadSapling : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "GameplayTasks", "ProceduralMeshComponent"});
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "GameplayTasks", "ProceduralMeshComponent", "Niagara"});
 
-    PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AIModule", "NavigationSystem" });
 
 		MinFilesUsingPrecompiledHeaderOverride = 1;
 
