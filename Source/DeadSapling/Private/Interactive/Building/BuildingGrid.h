@@ -92,7 +92,7 @@ public:
 	float SelectionOpactiy = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category ="BuildingGrid", meta = (AllowPrivateAccess = true))
-	int GridWeight;
+	int GridWeight = 1;
 
 private:
 	UFUNCTION(BlueprintCallable, Category="BuildingGrid")
